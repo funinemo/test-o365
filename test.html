@@ -1,0 +1,16 @@
+<html>
+    <head>
+        <title></title>
+    </head>
+    <body>
+        <form action="https://login.microsoftonline.com/common/oauth2/v2.0/authorize" method="get">
+            <input type="hidden" name="client_id" value="0a77c1da-b4d0-48d3-a71e-07005dd5c429">
+            <input type="hidden" name="response_type" value="code">
+            <input type="hidden" name="scope" value="user.read mail.read contacts.read calendars.read">
+            <input type="hidden" name="state" value="1234567890">
+            <input type="hidden" name="response_mode" value="query">
+            <input type="hidden" name="redirect_uri" value="https://service.intra.tsunagunet.com:8443">
+            <input type="submit">
+        </form>
+    </body>
+</html>

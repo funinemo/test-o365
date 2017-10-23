@@ -15,13 +15,14 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"unicode/utf8"
 	//	"time"
 )
 
 type ConfigData struct {
 	Client_id     string
 	Client_secret string
-	Redirect_uri string
+	Redirect_uri  string
 }
 
 type TokenBody struct {
@@ -34,6 +35,11 @@ type TokenBody struct {
 }
 
 func auth_handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, `<html lang="en">
+		<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>"
+		</head>
+		<body><pre>`)
 	log.Println("=====/auth START=====")
 	if err := r.ParseForm(); err != nil {
 		log.Fatal(err)
@@ -101,7 +107,7 @@ func auth_handler(w http.ResponseWriter, r *http.Request) {
 	//	time.Sleep(5 * time.Second)
 	log.Printf("=====/auth -> MailGet START=====")
 	//		url = "https://outlook.office.com/api/v2.0/me/events"
-	url = "https://outlook.office.com/api/v2.0/me/mailfolders/inbox/messages?$top=5"
+	//	url = "https://outlook.office.com/api/v2.0/me/mailfolders/inbox/messages?$top=5"
 	url = "https://graph.microsoft.com/v1.0/me/mailfolders/inbox/messages?$top=1"
 	//	url = "https://graph.microsoft.com/v1.0/me/events"
 	req, _ = http.NewRequest("GET", url, nil)
@@ -116,10 +122,20 @@ func auth_handler(w http.ResponseWriter, r *http.Request) {
 	if err = json.Unmarshal(dumpRespBody, &dat); err != nil {
 		log.Fatal(err)
 	}
+	for k, v := range dat {
+		fmt.Fprintf(w, "%v,%s", k, v)
+	}
 	log.Println("=========================")
+	runes, size := utf8.DecodeRuneInString(string(dumpRespBody))
+	log.Printf("%v,%v", runes, size)
 	for v := range dat {
 		log.Printf("%#v", v)
 	}
+	json.NewDecoder(resp.Body).Decode(&dat)
+	for k, v := range dat {
+		log.Printf("%#v,%#v", k, v)
+	}
+	fmt.Fprintln(w, `</pre></body></html>`)
 
 }
 

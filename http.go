@@ -21,6 +21,7 @@ import (
 type ConfigData struct {
 	Client_id     string
 	Client_secret string
+	Redirect_uri string
 }
 
 type TokenBody struct {
@@ -55,7 +56,7 @@ func auth_handler(w http.ResponseWriter, r *http.Request) {
 	values.Add("code", code)
 	values.Add("scope", "user.read mail.read")
 	values.Add("client_id", config.Client_id)
-	values.Add("redirect_uri", "http://localhost:8080/auth")
+	values.Add("redirect_uri", config.Redirect_uri)
 	values.Add("client_secret", config.Client_secret)
 
 	req, _ := http.NewRequest("POST", urls, strings.NewReader(values.Encode()))

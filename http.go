@@ -15,7 +15,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
-	"unicode/utf8"
 	//	"time"
 )
 
@@ -118,22 +117,21 @@ func auth_handler(w http.ResponseWriter, r *http.Request) {
 	dumpResp, _ = httputil.DumpResponse(resp, true)
 	dumpRespBody, _ = ioutil.ReadAll(resp.Body)
 	log.Printf("resp : %s\n", dumpResp)
+	var buf map[string]interface{}
+	err = json.Unmarshal(dumpRespBody, &buf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("=========================")
+	log.Printf("%v\n", buf)
+
 	var dat map[string]interface{}
 	if err = json.Unmarshal(dumpRespBody, &dat); err != nil {
 		log.Fatal(err)
 	}
+	log.Println("=========================")
 	for k, v := range dat {
 		fmt.Fprintf(w, "%v,%s", k, v)
-	}
-	log.Println("=========================")
-	runes, size := utf8.DecodeRuneInString(string(dumpRespBody))
-	log.Printf("%v,%v", runes, size)
-	for v := range dat {
-		log.Printf("%#v", v)
-	}
-	json.NewDecoder(resp.Body).Decode(&dat)
-	for k, v := range dat {
-		log.Printf("%#v,%#v", k, v)
 	}
 	fmt.Fprintln(w, `</pre></body></html>`)
 

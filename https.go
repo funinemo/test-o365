@@ -9,7 +9,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
-	//	"time"
 )
 
 type ConfigData struct {
@@ -28,6 +27,11 @@ type TokenBody struct {
 }
 
 func auth_handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, `<html lang="en">
+		<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>"
+		</head>
+		<body>`)
 	log.SetFlags(log.Lshortfile)
 	log.Println("=====/auth START=====")
 	if err := r.ParseForm(); err != nil {
@@ -96,7 +100,9 @@ func auth_handler(w http.ResponseWriter, r *http.Request) {
 	if err = json.Unmarshal(dumpRespBody, &prof); err != nil {
 		log.Fatal(err)
 	}
-	assert(prof)
+	fmt.Fprint(w,"<form><textarea rows=30 cols=100>")
+	assert(w,prof,0)
+	fmt.Fprint(w,"</textarea></form>")
 	log.Printf("=====/auth -> MailGet START=====")
 //	url = "https://graph.microsoft.com/v1.0/me/mailfolders/inbox/messages?$search=public&filter=ReceiveDataTime%20ge%202017-10-01%20and%20receivedDataTime%20lt%202017-10-23&top=1"
 	url = "https://graph.microsoft.com/v1.0/me/mailfolders/inbox/messages?$search=public&filter=ReceiveDataTime%20ge%202017-10-01%20and%20receivedDataTime%20lt%202017-10-23&$top=1"
@@ -117,33 +123,47 @@ func auth_handler(w http.ResponseWriter, r *http.Request) {
 //		log.Println("==================================================")
 //		log.Printf("%s = %#v\n", k,v)
 //	}
-	assert(dat)
+fmt.Fprint(w,"<form><textarea rows=30 cols=100>")
+assert(w,dat,0)
+fmt.Fprint(w,"</textarea></form></body></html>")
 }
-func assert(data interface{}) {
+func assert(w http.ResponseWriter,data interface{},idx int) {
+	//インデントを生成する
+	log.Printf("idx=%d",idx)
+	indent_format := "@--@"
+	var indent string
+	for i:=0;i<idx;i++{
+		indent += indent_format
+	}
+	
     switch data.(type) {
     case string:
-        fmt.Println(data.(string))
+        fmt.Fprintf(w,"\"%v\"\n",data.(string))
     case float64:
-        fmt.Println(data.(float64))
+        fmt.Fprintf(w,"\"%v\"\n",data.(float64))
     case bool:
-        fmt.Println(data.(bool))
+        fmt.Fprintf(w,"\"%v\"\n",data.(bool))
     case nil:
-        fmt.Println("null")
+        fmt.Fprintf(w,"\"null\"\n")
     case []interface{}:
-        fmt.Println("[")
+		fmt.Fprintf(w,"[\n")
+		idx++
         for _, v := range data.([]interface{}) {
-            assert(v)
-            fmt.Print(" ")
-        }
-        fmt.Println("]")
+            assert(w,v,idx)
+            fmt.Fprintf(w,"\"%s\"",indent)
+		}
+		idx--
+        fmt.Fprintln(w,"]")
     case map[string]interface{}:
-        fmt.Println("{")
+		fmt.Fprintf(w,"{\n")
+		idx++
         for k, v := range data.(map[string]interface{}) {
-            fmt.Printf("%s:",k)
-            assert(v)
-            fmt.Print(" ")
-        }
-        fmt.Println("}")
+            fmt.Fprintf(w,"%s\"%s\": ",indent,k)
+            assert(w,v,idx)
+            fmt.Fprint(w," ")
+		}
+		idx--
+        fmt.Fprintln(w,"}")
     default:
     }
 }
